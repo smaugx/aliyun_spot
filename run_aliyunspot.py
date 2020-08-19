@@ -4,11 +4,17 @@ import json
 import time
 import datetime
 import traceback
+import sys
+import os
+import argparse
 
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.acs_exception.exceptions import ClientException, ServerException
 from aliyunsdkecs.request.v20140526.RunInstancesRequest import RunInstancesRequest
 from aliyunsdkecs.request.v20140526.DescribeInstancesRequest import DescribeInstancesRequest
+from aliyunsdkecs.request.v20140526.DeleteInstancesRequest import DeleteInstancesRequest
+
+
 import config
 
 
@@ -136,6 +142,23 @@ class AliyunRunInstancesExample(object):
         print('Success. Instance creation succeed. InstanceIds: {}'.format(', '.join(instance_ids)))
         return instance_ids
 
+    def delete_instances(self, id_list):
+        """
+        调用销毁实例的 API
+        :return:RequestId 请求ID
+        """
+        request = DeleteInstancesRequest()
+        request.set_accept_format('json')
+        
+        request.set_InstanceIds(id_list)
+        # 是否只预检此次请求。true：发送检查请求，不会创建实例，也不会产生费用；false：发送正常请求，通过检查后直接创建实例，并直接产生费用
+        request.set_DryRun(False)
+        request.set_Force(True)
+        
+        response = self.client.do_action_with_exception(request)
+        print(str(response, encoding='utf-8'))
+        return
+
     def _check_instances_status(self, instance_ids):
         """
         每3秒中检查一次实例的状态，超时时间设为3分钟。
@@ -169,16 +192,84 @@ class AliyunRunInstancesExample(object):
         return data
 
 
-if __name__ == '__main__':
+def create_aliyun_spot():
     data = AliyunRunInstancesExample().run()
     for instance in data['Instances']['Instance']:
+        ecs_info_file = "./ecs/ecs.{0}".format(instance.get("InstanceId"))
+        with open(ecs_info_file, 'w') as fout:
+            fout.write(json.dumps(instance, indent=4))
+
+        print("\n")
+        print("InstanceId:{0}".format(instance.get("InstanceId")))
         print("InstanceName:{0}".format(instance.get("InstanceName")))
         print("HostName:{0}".format(instance.get("HostName")))
         print("PublicIp:{0}".format(instance.get("PublicIpAddress").get("IpAddress")[0]))
         print("KeyPairName:{0}".format(instance.get("KeyPairName")))
         print("CreationTime:{0}".format(instance.get("CreationTime")))
         print("AutoReleaseTime:{0}".format(instance.get("AutoReleaseTime")))
+        print("instance info saved in file:{0}".format(ecs_info_file))
 
-        print("now you can use ssh: ssh -i ~/.ssh/{0} root@{1}".format(config.ssh_key_file, instance.get("PublicIpAddress").get("IpAddress")[0]))
-        print("\n")
+        print("now you can use ssh: ssh -i {0} root@{1}".format(config.ssh_key_file, instance.get("PublicIpAddress").get("IpAddress")[0]))
 
+
+def list_local_aliyun_spot():
+    id_list = []
+    for item in os.listdir("./ecs"):
+        abs_item = os.path.join("./ecs", item)
+        if not item.startswith('ecs.'):
+            continue
+
+        with open(abs_item, 'r') as fin:
+            instance = json.loads(fin.read())
+            spotid = instance.get("InstanceId")
+            if spotid not in id_list:
+                id_list.append(spotid)
+    return id_list
+
+
+def release_aliyun_spot(release_id_list):
+    print("\nwill release aliyun instance:\n")
+    print(release_id_list)
+    try:
+        AliyunRunInstancesExample().delete_instances(release_id_list)
+        for spotid in release_id_list:
+            ecs_info_file = "./ecs/ecs.{0}".format(spotid)
+            if os.path.exists(ecs_info_file):
+                os.remove(ecs_info_file)
+    except Exception as e:
+        print('catch exception:{0}'.format(e))
+
+    return
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.description='aliyunspot, 自动创建阿里云抢占式实例,支持自动/手动释放' 
+    parser.add_argument('-c', '--create', help='create aliyun spot instance and run instance',choices=['true', 'false'] , default='false')
+    parser.add_argument('-r', '--release', help='release aliyun spot instance',choices=['true', 'false'] , default='false')
+    parser.add_argument('-l', '--list', help='list local record aliyun spot instance',choices=['true', 'false'] , default='false')
+    parser.add_argument('-s', '--spotid', help='aliyun spot instance_id for release, if more than one, use "," to cut-off ', type=str, default='')
+
+    args = parser.parse_args()
+
+    if args.create == 'true':
+        print('will create and run aliyun spot instance\n')
+        create_aliyun_spot()
+    elif args.release == 'true':
+        print("will release aliyun spot instance\n")
+        if not args.spotid:
+            print("you must give one or more instance id(s)")
+            sys.exit(-1)
+        sp_id = args.spotid.split(',')
+        release_id_list = []
+        for item in sp_id:
+            if not item:
+                continue
+            release_id_list.append(item)
+        release_aliyun_spot(release_id_list)
+    elif args.list == 'true':
+        print("will list local record instance\n")
+        id_list = list_local_aliyun_spot()
+        print(id_list)
+    else:
+        parser.print_help()
