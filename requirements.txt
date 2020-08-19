@@ -1,0 +1,4 @@
+aliyun-python-sdk-core==2.13.25
+aliyun-python-sdk-ecs==4.19.10
+jmespath==0.10.0
+pycryptodome==3.9.8
