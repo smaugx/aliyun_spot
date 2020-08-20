@@ -34,7 +34,7 @@ class AliyunRunInstancesExample(object):
         # 实例所属的地域ID
         self.region_id = config.region_id
         # 实例的资源规格
-        self.instance_type = 'ecs.t5-lc2m1.nano'
+        self.instance_type = config.instance_type
         # 实例的计费方式
         self.instance_charge_type = 'PostPaid'
         # 镜像ID
