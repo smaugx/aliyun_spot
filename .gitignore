@@ -1,4 +1,4 @@
 vv
 config.py
 __pycache__/
-ecs/*
+ecs/ecs*
