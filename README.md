@@ -32,7 +32,9 @@
 + 释放时间（hours）
 
 ## 手动释放一个或者多个实例
-可以使用脚本提前释放一个或者多个实例
+可以使用脚本提前释放一个或者多个实例。
+
+**创建的时候可以设置自动释放时间，当然也支持随时手动释放**。
 
 
 
@@ -57,7 +59,7 @@ optional arguments:
 ```
 
 
-1 克隆仓库
+##1 克隆仓库
 
 ```
 $ git clone https://github.com/smaugx/aliyun_spot.git
@@ -67,7 +69,7 @@ $ source vv/bin/activate
 $ pip install -r requirements.txt
 ```
 
-2  调整配置
+##2  调整配置
 
 ```
 $ cp test_config.py config.py
@@ -75,14 +77,16 @@ $ cp test_config.py config.py
 $ vim config.py
 ```
 
-当然你也可以不用修改其他配置，只需要把你的 **access_id** 和 **access_secret** 填进去就可以，以及 **key_pair_name** 填进去。（见后文章节 #阿里云官网操作# ）
+当然你也可以不用修改其他配置，只需要把你的 **access\_id** 和 **access\_secret** 填进去就可以，以及 **key\_pair\_name** 填进去。（见后文章节 **#阿里云官网操作#** ）
 
 **默认创建的是香港地区的抢占式实例，内存 500MB, 1 CPU, 系统盘 20GB, 按流量计费（1元/G), 公网出口带宽 10Mbps, 1 小时候自动释放。**
 
 > 2020-08-19 上述默认配置的实例价格在 ￥ 0.018 /时。
 
+如果你觉得这个配置(cpu/mem)无法满足你的要求，那么可以调整 **instance\_type** 这个参数，表示实例规格，详细可以查看阿里云官网页面 [云服务器 ECS > 实例 > 实例规格族](https://help.aliyun.com/document_detail/25378.html)
 
-3 创建实例
+
+##3 创建实例
 
 ```
 $ python run_aliyunspot.py -c true
@@ -111,7 +115,7 @@ now you can use ssh: ssh -i ~/.ssh/aliyunspot.pem root@8.210.168.220
 $ ssh -i ~/.ssh/~/.ssh/aliyunspot.pem root@8.210.245.226
 ```
 
-4 列出实例
+##4 列出实例
 
 ```
 $ python run_aliyunspot.py -l true
@@ -122,14 +126,11 @@ will list local record instance
 
 注意，上面仅仅是把之前创建并保存的实例信息从文件当中读取出来，并没有与 aliyun 交互。
 
-5 释放实例
+##5 释放实例
 
 ```
 $ python run_aliyunspot.py -r true -s i-j6ce2by63lt3n4xq1ygk
 will release aliyun spot instance
-
-
-will release aliyun instance:
 
 ['i-j6ce2by63lt3n4xq1ygk']
 {"RequestId":"284754E1-EE8A-4DBB-B440-B59B8A594EAC"}
@@ -153,17 +154,22 @@ will release aliyun instance:
 
 OK, 到这里基本上得到了我们脚本里需要的几个配置：
 
-+ access_id
-+ access_secret
-+ key_pair_name
++ access\_id
++ access\_secret
++ key\_pair\_name
 
 
 把上述几个配置填到 config.py 中即可。
 
-然后开始创建和管理你的实例吧！！
+# 然后开始创建和管理你的实例吧！！
 
-然后开始创建和管理你的实例吧！！
+# 然后开始创建和管理你的实例吧！！
 
-然后开始创建和管理你的实例吧！！
+# 然后开始创建和管理你的实例吧！！
+
+
+# 附
++ [阿里云官网](https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj)
++ [Aliyun OpenAPI Explorer](https://api.aliyun.com)
 
 

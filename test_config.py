@@ -30,3 +30,5 @@ system_disk_size = '20'
 system_disk_category = 'cloud_efficiency'
 # 释放时间 hours
 auto_release_hour = 1
+# 实例类型(cpu/mem/disk) 详细可以查看 https://help.aliyun.com/document_detail/25378.html
+instance_type = 'ecs.t5-lc2m1.nano'
