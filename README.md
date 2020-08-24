@@ -20,6 +20,11 @@
 
 但是要注意，这个实例是有可能被释放的，但是不用担心，比如**香港地区的释放率最近（2020-08-19）小于 3%. 另外，每个人可以最大创建 100 个实例**，所以还是不用太担心。
 
+![](https://cdn.jsdelivr.net/gh/smaugx/MyblogImgHosting_2/rebootcat/auto_run_aliyun_spot/1.png)
+
+<!-- more -->
+
+
 # 脚本功能
 ## 自动创建阿里云抢占式实例
 支持以下一些参数：
@@ -43,20 +48,20 @@
 
 ```
 $ python run_aliyunspot.py
-usage: run_aliyunspot.py [-h] [-c {true,false}] [-r {true,false}] [-l {true,false}] [-s SPOTID]
+usage: run_aliyunspot.py [-h] [-c [CREATE]] [-r [RELEASE]] [-l [LIST]] [-s [SPOTID [SPOTID ...]]]
 
 aliyunspot, 自动创建阿里云抢占式实例,支持自动/手动释放
 
 optional arguments:
   -h, --help            show this help message and exit
-  -c {true,false}, --create {true,false}
+  -c [CREATE], --create [CREATE]
                         create aliyun spot instance and run instance
-  -r {true,false}, --release {true,false}
+  -r [RELEASE], --release [RELEASE]
                         release aliyun spot instance
-  -l {true,false}, --list {true,false}
+  -l [LIST], --list [LIST]
                         list local record aliyun spot instance
-  -s SPOTID, --spotid SPOTID
-                        aliyun spot instance_id for release, if more than one, use "," to cut-off
+  -s [SPOTID [SPOTID ...]], --spotid [SPOTID [SPOTID ...]]
+                        aliyun spot instance_id for release, you can give more than one
 ```
 
 
@@ -90,24 +95,24 @@ $ vim config.py
 ## 3 创建实例
 
 ```
-$ python run_aliyunspot.py -c true
-
-will create and run aliyun spot instance
-
-Success. Instance creation succeed. InstanceIds: i-j6ci3ugz59bvb3y41uf4
-Instance boot successfully: i-j6ci3ugz59bvb3y41uf4
+$ python run_aliyunspot.py -c
+will create and run aliyun spot instance, please wait...
+Success. Instance creation succeed. InstanceIds: i-j6cfhcbb3o2pepduwgfk
+Instance boot successfully: i-j6cfhcbb3o2pepduwgfk
 Instances all boot successfully
 
 
-InstanceId:i-j6ci3ugz59bvb3y41uf4
-InstanceName:smaug-000-aliyun-8192314
-HostName:smaug-000-aliyun-8192314
-PublicIp:8.210.168.220
+InstanceId:i-j6cfhcbb3o2pepduwgfk
+InstanceName:smaug-000-aliyun-8242148
+HostName:smaug-000-aliyun-8242148
+PublicIp:47.242.33.179
 KeyPairName:aliyunspot
-CreationTime:2020-08-19T15:14Z
-AutoReleaseTime:2020-08-20T00:14Z
-now you can use ssh: ssh -i ~/.ssh/aliyunspot.pem root@8.210.168.220
+CreationTime:2020-08-24T13:48Z
+AutoReleaseTime:2020-08-24T22:48Z
 
+
+instance info saved in file:./ecs/ecs.i-j6cfhcbb3o2pepduwgfk
+now you can use ssh: ssh -i ~/.ssh/aliyunspot.pem root@47.242.33.179
 ```
 
 如上，创建成功。然后接下来就可以使用 ssh 登录：
@@ -119,10 +124,9 @@ $ ssh -i ~/.ssh/~/.ssh/aliyunspot.pem root@8.210.245.226
 ## 4 列出实例
 
 ```
-$ python run_aliyunspot.py -l true
-will list local record instance
-
-['i-j6ci3ugz59bvb3y41uf4', 'i-j6ca8vgb7qexh4w1zlya']
+$ python run_aliyunspot.py -l
+list all local record instance:
+['i-j6caz353cisgl3fzenwi', 'i-j6cbyis12fb1fpzk59fv', 'i-j6cfhcbb3o2pepduwgfk']
 ```
 
 注意，上面仅仅是把之前创建并保存的实例信息从文件当中读取出来，并没有与 aliyun 交互。
@@ -130,11 +134,12 @@ will list local record instance
 ## 5 释放实例
 
 ```
-$ python run_aliyunspot.py -r true -s i-j6ce2by63lt3n4xq1ygk
-will release aliyun spot instance
+$ python run_aliyunspot.py -r -s i-j6caz353cisgl3fzenwi i-j6cbyis12fb1fpzk59fv
+will release aliyun spot instance:
+['i-j6caz353cisgl3fzenwi', 'i-j6cbyis12fb1fpzk59fv']
+please wait...
 
-['i-j6ce2by63lt3n4xq1ygk']
-{"RequestId":"284754E1-EE8A-4DBB-B440-B59B8A594EAC"}
+release instance:["i-j6caz353cisgl3fzenwi", "i-j6cbyis12fb1fpzk59fv"] done
 ```
 
 # [阿里云官网操作](https://www.aliyun.com/minisite/goods?userCode=c5nuzwoj)
