@@ -156,7 +156,6 @@ class AliyunRunInstancesExample(object):
         request.set_Force(True)
         
         response = self.client.do_action_with_exception(request)
-        print(str(response, encoding='utf-8'))
         return
 
     def _check_instances_status(self, instance_ids):
@@ -207,8 +206,8 @@ def create_aliyun_spot():
         print("KeyPairName:{0}".format(instance.get("KeyPairName")))
         print("CreationTime:{0}".format(instance.get("CreationTime")))
         print("AutoReleaseTime:{0}".format(instance.get("AutoReleaseTime")))
+        print('\n')
         print("instance info saved in file:{0}".format(ecs_info_file))
-
         print("now you can use ssh: ssh -i {0} root@{1}".format(config.ssh_key_file, instance.get("PublicIpAddress").get("IpAddress")[0]))
 
 
@@ -228,16 +227,15 @@ def list_local_aliyun_spot():
 
 
 def release_aliyun_spot(release_id_list):
-    print("\nwill release aliyun instance:\n")
-    print(release_id_list)
     try:
         AliyunRunInstancesExample().delete_instances(release_id_list)
         for spotid in release_id_list:
             ecs_info_file = "./ecs/ecs.{0}".format(spotid)
             if os.path.exists(ecs_info_file):
                 os.remove(ecs_info_file)
+        print("release instance:{0} done".format(json.dumps(release_id_list)))
     except Exception as e:
-        print('catch exception:{0}'.format(e))
+        print('release failed, catch exception:{0}'.format(e))
 
     return
 
@@ -245,30 +243,28 @@ def release_aliyun_spot(release_id_list):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.description='aliyunspot, 自动创建阿里云抢占式实例,支持自动/手动释放' 
-    parser.add_argument('-c', '--create', help='create aliyun spot instance and run instance',choices=['true', 'false'] , default='false')
-    parser.add_argument('-r', '--release', help='release aliyun spot instance',choices=['true', 'false'] , default='false')
-    parser.add_argument('-l', '--list', help='list local record aliyun spot instance',choices=['true', 'false'] , default='false')
-    parser.add_argument('-s', '--spotid', help='aliyun spot instance_id for release, if more than one, use "," to cut-off ', type=str, default='')
+    parser.add_argument('-c', '--create', help='create aliyun spot instance and run instance',nargs='?',const = 'true', default='false', type=str)
+    parser.add_argument('-r', '--release', help='release aliyun spot instance',nargs='?',const = 'true', default='false', type=str)
+    parser.add_argument('-l', '--list', help='list local record aliyun spot instance',nargs='?',const='true', default='false', type=str)
+    parser.add_argument('-s', '--spotid', help='aliyun spot instance_id for release, you can give more than one', nargs='*', default='')
 
     args = parser.parse_args()
 
     if args.create == 'true':
-        print('will create and run aliyun spot instance\n')
+        print('will create and run aliyun spot instance, please wait...')
         create_aliyun_spot()
     elif args.release == 'true':
-        print("will release aliyun spot instance\n")
-        if not args.spotid:
-            print("you must give one or more instance id(s)")
+        release_id_list = args.spotid
+        if not release_id_list:
+            print("you must give one or more instance_id using --spotid")
             sys.exit(-1)
-        sp_id = args.spotid.split(',')
-        release_id_list = []
-        for item in sp_id:
-            if not item:
-                continue
-            release_id_list.append(item)
+
+        print("will release aliyun spot instance:")
+        print(release_id_list)
+        print("please wait...\n")
         release_aliyun_spot(release_id_list)
     elif args.list == 'true':
-        print("will list local record instance\n")
+        print("list all local record instance:")
         id_list = list_local_aliyun_spot()
         print(id_list)
     else:
